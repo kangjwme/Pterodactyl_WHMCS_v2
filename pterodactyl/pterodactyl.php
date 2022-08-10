@@ -2,19 +2,15 @@
 
 /**
 MIT License
-
 Copyright (c) 2018-2019 Stepan Fedotov <stepan@crident.com>
-
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
 in the Software without restriction, including without limitation the rights
 to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
 copies of the Software, and to permit persons to whom the Software is
 furnished to do so, subject to the following conditions:
-
 The above copyright notice and this permission notice shall be included in all
 copies or substantial portions of the Software.
-
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
 FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -32,7 +28,7 @@ use Illuminate\Database\Capsule\Manager as Capsule;
 
 function pterodactyl_GetHostname(array $params) {
     $hostname = $params['serverhostname'];
-    if ($hostname === '') throw new Exception('Could not find the panel\'s hostname - did you configure server group for the product?');
+    if ($hostname === '') throw new Exception('無法找到正確的面板網域，請問您有設定完成面板的網域嗎？');
 
     // For whatever reason, WHMCS converts some characters of the hostname to their literal meanings (- => dash, etc) in some cases
     foreach([
@@ -105,20 +101,20 @@ function pterodactyl_MetaData() {
 function pterodactyl_ConfigOptions() {
     return [
         "cpu" => [
-            "FriendlyName" => "CPU Limit (%)",
-            "Description" => "Amount of CPU to assign to the created server.",
+            "FriendlyName" => "CPU 執行緒使用上限",
+            "Description" => "最大上限依照您的伺服器執行緒而定，請勿超過此數量。可使用小數點，範例：1.5 = 150% CPU 使用率",
             "Type" => "text",
             "Size" => 10,
         ],
         "disk" => [
-            "FriendlyName" => "Disk Space (MB)",
-            "Description" => "Amount of Disk Space to assign to the created server.",
+            "FriendlyName" => "硬碟空間使用上限(GB)",
+            "Description" => "伺服器可使用之空間上限（部分備份檔案可能會超過此限制）。可使用小數點，範例：1.5 = 1.5 GB = 1536 MB",
             "Type" => "text",
             "Size" => 10,
         ],
         "memory" => [
-            "FriendlyName" => "Memory (MB)",
-            "Description" => "Amount of Memory to assign to the created server.",
+            "FriendlyName" => "記憶體使用上限(GB)",
+            "Description" => "伺服器可使用之記憶體上限。可使用小數點，範例：0.125 = 0.125 GB = 128 MB",
             "Type" => "text",
             "Size" => 10,
         ],
@@ -183,8 +179,8 @@ function pterodactyl_ConfigOptions() {
             "Size" => 25,
         ],
         "databases" => [
-            "FriendlyName" => "Databases",
-            "Description" => "Client will be able to create this amount of databases for their server (optional)",
+            "FriendlyName" => "資料庫數量上限(選填)",
+            "Description" => "",
             "Type" => "text",
             "Size" => 10,
         ],
@@ -200,14 +196,14 @@ function pterodactyl_ConfigOptions() {
             "Type" => "yesno",
         ],
         "backups" => [
-            "FriendlyName" => "Backups",
-            "Description" => "Client will be able to create this amount of backups for their server (optional)",
+            "FriendlyName" => "備份數量上限(選填)",
+            "Description" => "",
             "Type" => "text",
             "Size" => 10,
         ],
         "allocations" => [
-            "FriendlyName" => "Allocations",
-            "Description" => "Client will be able to create this amount of allocations for their server (optional)",
+            "FriendlyName" => "額外端口分配上限(選填)",
+            "Description" => "",
             "Type" => "text",
             "Size" => 10,
         ],
@@ -306,6 +302,7 @@ function pterodactyl_CreateAccount(array $params) {
         if(isset($serverId)) throw new Exception('Failed to create server because it is already created.');
 
         $userResult = pterodactyl_API($params, 'users/external/' . $params['clientsdetails']['id']);
+        // 找不到用戶 -> 創建用戶
         if($userResult['status_code'] === 404) {
             $userResult = pterodactyl_API($params, 'users?filter[email]=' . urlencode($params['clientsdetails']['email']));
             if($userResult['meta']['pagination']['total'] === 0) {
@@ -353,11 +350,11 @@ function pterodactyl_CreateAccount(array $params) {
         }
 
         $name = pterodactyl_GetOption($params, 'server_name', pterodactyl_GenerateUsername() . '_' . $params['serviceid']);
-        $memory = pterodactyl_GetOption($params, 'memory');
+        $memory = pterodactyl_GetOption($params, 'memory') * 1024;
         $swap = pterodactyl_GetOption($params, 'swap');
         $io = pterodactyl_GetOption($params, 'io');
-        $cpu = pterodactyl_GetOption($params, 'cpu');
-        $disk = pterodactyl_GetOption($params, 'disk');
+        $cpu = pterodactyl_GetOption($params, 'cpu') * 100;
+        $disk = pterodactyl_GetOption($params, 'disk') * 1024;
         $location_id = pterodactyl_GetOption($params, 'location_id');
         $dedicated_ip = pterodactyl_GetOption($params, 'dedicated_ip') ? true : false;
         $port_range = pterodactyl_GetOption($params, 'port_range');
@@ -541,11 +538,11 @@ function pterodactyl_ChangePackage(array $params) {
         if($serverData['status_code'] === 404 || !isset($serverData['attributes']['id'])) throw new Exception('Failed to change package of server because it doesn\'t exist.');
         $serverId = $serverData['attributes']['id'];
 
-        $memory = pterodactyl_GetOption($params, 'memory');
+        $memory = pterodactyl_GetOption($params, 'memory') * 1024;
         $swap = pterodactyl_GetOption($params, 'swap');
         $io = pterodactyl_GetOption($params, 'io');
-        $cpu = pterodactyl_GetOption($params, 'cpu');
-        $disk = pterodactyl_GetOption($params, 'disk');
+        $cpu = pterodactyl_GetOption($params, 'cpu') * 100;
+        $disk = pterodactyl_GetOption($params, 'disk') * 1024;
         $databases = pterodactyl_GetOption($params, 'databases');
         $allocations = pterodactyl_GetOption($params, 'allocations');
         $backups = pterodactyl_GetOption($params, 'backups');
@@ -613,9 +610,7 @@ function pterodactyl_LoginLink(array $params) {
         if(!isset($serverId)) return;
 
         $hostname = pterodactyl_GetHostname($params);
-        echo '<a style="padding-right:3px" href="'.$hostname.'/admin/servers/view/' . $serverId . '" target="_blank">[Go to Service]</a>';
-        echo '<p style="float:right; padding-right:1.3%">[<a href="https://github.com/pterodactyl/whmcs/issues" target="_blank">Report A Bug</a>]</p>';
-        # echo '<p style="float: right">[<a href="https://github.com/pterodactyl/whmcs/issues" target="_blank">Report A Bug</a>]</p>';
+        echo '<a style="padding-right:3px" href="'.$hostname.'/admin/servers/view/' . $serverId . '" target="_blank">[前往伺服器查看]</a>';
     } catch(Exception $err) {
         // Ignore
     }
@@ -638,6 +633,13 @@ function pterodactyl_ClientArea(array $params) {
             'templatefile' => 'clientarea',
             'vars' => [
                 'serviceurl' => $hostname . '/server/' . $serverData['attributes']['identifier'],
+                'serviceuuid' => $serverData['attributes']['uuid'],
+                'servicememory' => $serverData['attributes']['limits']['memory'] / 1024,,
+                'servicedisk' => $serverData['attributes']['limits']['disk'] / 1024,
+                'servicecpu' => $serverData['attributes']['limits']['cpu'] / 100,
+                'servicedatabases' => $serverData['attributes']['feature_limits']['databases'],
+                'servicebackups' => $serverData['attributes']['feature_limits']['backups'],
+                'serviceallocations' => $serverData['attributes']['feature_limits']['allocations'],
             ],
         ];
     } catch (Exception $err) {
