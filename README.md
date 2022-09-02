@@ -1,3 +1,8 @@
+## 修改部分
+- 把他中文化
+- 增加更多顯示資訊
+- MB 單位改成 GB 單位。更容易閱讀及設定
+
 ## WHMCS
 
 WHMCS Module for the [Pterodactyl Panel](https://github.com/pterodactyl/panel/).
