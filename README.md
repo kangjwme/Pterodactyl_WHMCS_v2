@@ -4,6 +4,8 @@
 - MB 單位改成 GB 單位。更容易閱讀及設定
 - CPU 單位從 % 數改為核心數（1 核心 = 100%）
 
+感謝 @windlessme 幫我找到些小錯誤，已更正
+
 ## WHMCS
 
 WHMCS Module for the [Pterodactyl Panel](https://github.com/pterodactyl/panel/).
