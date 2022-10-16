@@ -60,7 +60,7 @@
         <h5 class="card-title">控制面板</h5>
         <p class="card-text">初次使用 或 忘記密碼，請點選左方「重置密碼」連結</p>
         <p class="card-text">預設面板登入帳號為您於此註冊之「電子郵件」</p>
-        <a href="#" class="btn btn-primary">控制面板點我前往</a>
+        <a href="{$serviceurl}" class="btn btn-primary">控制面板點我前往</a>
       </div>
     </div>
   </div>
