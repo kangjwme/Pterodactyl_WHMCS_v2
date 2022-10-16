@@ -634,7 +634,7 @@ function pterodactyl_ClientArea(array $params) {
             'vars' => [
                 'serviceurl' => $hostname . '/server/' . $serverData['attributes']['identifier'],
                 'serviceuuid' => $serverData['attributes']['uuid'],
-                'servicememory' => $serverData['attributes']['limits']['memory'] / 1024,,
+                'servicememory' => $serverData['attributes']['limits']['memory'] / 1024,
                 'servicedisk' => $serverData['attributes']['limits']['disk'] / 1024,
                 'servicecpu' => $serverData['attributes']['limits']['cpu'] / 100,
                 'servicedatabases' => $serverData['attributes']['feature_limits']['databases'],
