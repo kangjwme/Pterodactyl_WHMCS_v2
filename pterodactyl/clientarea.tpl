@@ -30,7 +30,7 @@
     <div class="card">
       <div class="card-body text-center">
         <h5 class="card-title">備份數量限制</h5>
-        <p class="card-text">{$servicebackup} 個</p>
+        <p class="card-text">{$servicebackups} 個</p>
       </div>
     </div>
   </div>
